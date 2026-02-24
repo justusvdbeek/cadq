@@ -15,6 +15,8 @@ Computer-aided detection and diagnosis (CADe/x) systems in gastrointestinal endo
 
 ## Model Architecture
 
+<img src="images/cadq_architecture.png" width="80%" alt="CADq Architecture"/>
+
 The system consists of two main components:
 
 1. **Backbone (CaFormer-S18):** A MetaFormer-based vision transformer pretrained and fine-tuned for CADe of Barrett's esophagus. It produces hierarchical feature maps at four spatial resolutions:
@@ -25,14 +27,12 @@ The system consists of two main components:
 
 2. **Classification Heads:** Lightweight heads attached to one (or all concatenated) backbone feature levels. Each head independently predicts one quality criterion:
 
-   | Head | Classes | Labels |
-   |------|---------|--------|
-   | `clean` | 3 | Poor / Adequate / Good mucosal cleaning |
-   | `expansion` | 3 | Poor / Adequate / Good luminal expansion |
-   | `oiq` | 3 | Poor / Adequate / Good overall image quality |
-   | `retro` | 2 | Insertion view / Retrograde view |
-
-![CADq Architecture](images/cadq_architecture.png)
+   | Task | Code Name | Classes | Labels |
+   |------|-----------|---------|--------|
+   | Cleaning | `clean` | 3 | Poor / Adequate / Good mucosal cleaning |
+   | Expansion | `expansion` | 3 | Poor / Adequate / Good luminal expansion |
+   | OIQ | `oiq` | 3 | Poor / Adequate / Good overall image quality |
+   | Orientation | `retro` | 2 | Insertion view / Retrograde view |
 
 ## Project Structure
 
