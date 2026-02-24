@@ -71,7 +71,7 @@ cadq/
 If you use this code in your research, please cite:
 
 ```bibtex
-@inproceedings{cadq2026,
+@inproceedings{vandeBeek2026,
   title     = {Extending image quality assessment system on top of pretrained CADe backbone for Barrett's esophagus},
   author    = {van de Beek, Justus M.A. and Jaspers, Tim J.M. and Viviers, Christiaan G.A. and van der Putten, Joost A. and Kusters, Carolus H.J. and Jong, Martijn R. and van Eijck van Heslinga, Rixta A.H. and Slooter, Floor and de Groof, Albert J. and Bergman, Jacques J. and De With, Peter H.N. and van der Sommen, Fons},
   booktitle = {SPIE Medical Imaging},
