@@ -32,6 +32,8 @@ The system consists of two main components:
    | `oiq` | 3 | Poor / Adequate / Good overall image quality |
    | `retro` | 2 | Insertion view / Retrograde view |
 
+![CADq Architecture](images/cadq_architecture.png)
+
 ## Project Structure
 
 ```
