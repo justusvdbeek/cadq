@@ -29,9 +29,9 @@ The system consists of two main components:
 
    | Task | Code Name | Classes | Labels |
    |------|-----------|---------|--------|
-   | Cleaning | `clean` | 3 | Poor / Adequate / Good mucosal cleaning |
-   | Expansion | `expansion` | 3 | Poor / Adequate / Good luminal expansion |
-   | OIQ | `oiq` | 3 | Poor / Adequate / Good overall image quality |
+   | Cleaning | `clean` | 3 | Poor / Adequate / Good |
+   | Expansion | `expansion` | 3 | Poor / Adequate / |
+   | OIQ | `oiq` | 3 | Poor / Adequate / Good |
    | Orientation | `retro` | 2 | Insertion view / Retrograde view |
 
 ## Project Structure
