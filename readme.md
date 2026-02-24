@@ -1,148 +1,81 @@
-## Getting started
-1. replace all instances of `project_name` with your project name.
-If you are using VSCode, you can use the `replace all (ctrl + shift + H)` function to do this.
-Use lowercase, capitalized names are not supported in docker.
+# CADq: Image Quality Assessment for Barrett's Esophagus Endoscopy
 
-3. Edit the author name in `conf.py` in the docs folder.
+> **Extending image quality assessment system on top of pretrained CADe backbone for Barrett's esophagus**  
+> *SPIE Medical Imaging 2026*
 
-4. Create a virtual environment and activate it
-```bash
-python -m venv .venv
+**Authors:** Justus M.A. van de Beek<sup>a</sup>, Tim J.M. Jaspers<sup>a</sup>, Christiaan G.A. Viviers<sup>a</sup>, Joost A. van der Putten<sup>c</sup>, Carolus H.J. Kusters<sup>a</sup>, Martijn R. Jong<sup>b</sup>, Rixta A.H. van Eijck van Heslinga<sup>b</sup>, Floor Slooter<sup>b</sup>, Albert J. de Groof<sup>b</sup>, Jacques J. Bergman<sup>b</sup>, Peter H.N. De With<sup>a</sup>, and Fons van der Sommen<sup>a</sup>
+
+<sup>a</sup> Eindhoven University of Technology, Eindhoven, The Netherlands  
+<sup>b</sup> Amsterdam University Medical Centers, Amsterdam, The Netherlands  
+<sup>c</sup> Theta Vision, Eindhoven, The Netherlands
+
+## Abstract
+
+Computer-aided detection and diagnosis (CADe/x) systems in gastrointestinal endoscopy frequently underperform in routine clinical practice due to variable and suboptimal image quality. We propose a lightweight computer-aided quality (CADq) module that reuses feature representations from a pretrained CADe model to enable real-time image quality assessment. Using annotated esophageal endoscopy images, we investigate whether a frozen CaFormer-S18 backbone, originally trained for Barrett's esophagus neoplasia detection, can be repurposed for four CADq tasks: **overall image quality (OIQ)**, **mucosal cleaning**, **esophageal expansion**, and **procedural orientation**. Analyses of the pretrained feature space demonstrate that substantial task-relevant quality information is already encoded in the backbone. Lightweight two-layer MLP decoder heads operating on frozen features achieve strong performance across all tasks, with macro-AUROC values of 0.870 for OIQ, 0.927 for esophageal expansion, and 0.938 for mucosal cleaning, indicating that diagnostically trained representations are sufficient for reliable quality assessment. Backbone fine-tuning provides only marginal performance gains relative to the additional computational cost. This shared-backbone design reduces training and inference complexity while maintaining high predictive performance, supporting practical integration of CADq into clinical endoscopic workflows and improving the robustness and interpretability of downstream CADe/x systems.
+
+## Model Architecture
+
+The system consists of two main components:
+
+1. **Backbone (CaFormer-S18):** A MetaFormer-based vision transformer pretrained and fine-tuned for CADe of Barrett's esophagus. It produces hierarchical feature maps at four spatial resolutions:
+   - Level 1: `(B, 64, 56, 56)`
+   - Level 2: `(B, 128, 28, 28)`
+   - Level 3: `(B, 320, 14, 14)`
+   - Level 4: `(B, 512, 7, 7)`
+
+2. **Classification Heads:** Lightweight heads attached to one (or all concatenated) backbone feature levels. Each head independently predicts one quality criterion:
+
+   | Head | Classes | Labels |
+   |------|---------|--------|
+   | `clean` | 3 | Poor / Adequate / Good mucosal cleaning |
+   | `expansion` | 3 | Poor / Adequate / Good luminal expansion |
+   | `oiq` | 3 | Poor / Adequate / Good overall image quality |
+   | `retro` | 2 | Insertion view / Retrograde view |
+
+## Project Structure
+
 ```
-4. install base requirements
-```bash
-pip install requirements/base.txt
-```
-## Get help about the cli tool in the terminal
-To view the available commands, run
-
-```bash
-.\manage --help
-```
-
-## Dependency management
-
-This project uses [pip-compile-multi](https://pypi.org/project/pip-compile-multi/) for hard-pinning dependencies versions.
-Please see its documentation for usage instructions.
-In short, `requirements/base.in` contains the list of direct requirements with occasional version constraints (like `Django<2`)
-and `requirements/base.txt` is automatically generated from it by adding recursive tree of dependencies with fixed versions.
-The same goes for `testing` and `development`.
-
-### Pinning dependencies
-To generate pinned versions of the project's dependencies, run 
-
-```bash
-python manage.py pin
-```
-
-### Upgrading dependencies
-To upgrade pinned dependencies, run
-
-```bash
-python manage.py pin --upgrade
-```
-
-### Installing dependencies
-To install pinned dependencies, run
-
-```bash
-python manage.py install [environment]
-```
-where `environment` is one of `base`, `testing` or `development`. If not specified, `base` is used.
-
-
-### Synchronizing dependencies
-To synchronize pinned dependencies with the current environment, run
-```bash
-python manage.py sync [environment]
-```
-where `environment` is one of `base`, `testing` or `development`. If not specified, `base` is used.
-
-this command will first run deinstall all unused dependencies, generate pinned dependencies and then install all missing dependencies.
-
-
-## Using Docker to run the project
-Before running, unsure docker is installed on your machine.
-
-### Running in Production Environment in Docker
-
-To deploy the project in a production environment, execute the following command:
-
-```shell
-docker python manage.py docker prod
+cadq/
+├── src/
+│   ├── config.py              # CLI argument parsing and experiment configuration
+│   ├── data_module.py         # PyTorch Lightning DataModule
+│   ├── dataset.py             # Dataset loading and label parsing from JSON annotations
+│   ├── preprocess.py          # ROI detection and image preprocessing
+│   ├── transforms.py          # Data augmentation and normalization transforms
+│   ├── metrics.py             # Evaluation metrics (AUROC, MAE, AUPRC)
+│   ├── experiments.sh         # Shell script to reproduce all paper experiments
+│   ├── modeling/
+│   │   ├── train.py           # Training loop (cross-validation + final training)
+│   │   ├── losses.py          # Weighted cross-entropy loss
+│   │   └── callbacks.py       # Per-head metric recording callback
+│   └── models/
+│       ├── MetaFormer.py      # CaFormer-S18 architecture definition
+│       ├── backbones.py       # CaformerBackbone wrapper with weight loading
+│       ├── heads.py           # FeatureStudyHead and MlpHead classification heads
+│       ├── model_base.py      # ModelBase combining backbone + head
+│       └── model_module.py    # PyTorch Lightning ClassificationModule
+├── notebooks/
+│   ├── data_splitting.ipynb   # Train/test split creation
+│   ├── features.ipynb         # Feature-level analysis and visualization
+│   ├── visualize_data.ipynb   # Dataset exploration and annotation statistics
+│   └── test.ipynb             # Model evaluation on the held-out test set
+├── requirements/
+│   └── base.txt               # Pinned dependencies
+└── readme.md
 ```
 
-This command will start the project in a detached mode, suitable for production use.
+## Citation
 
-### Running in Development Environment in Docker
-For development purposes, use the following command to run the project:
+If you use this code in your research, please cite:
 
-```shell
-docker python manage.py docker dev
+```bibtex
+@inproceedings{cadq2026,
+  title     = {Extending image quality assessment system on top of pretrained CADe backbone for Barrett's esophagus},
+  author    = {van de Beek, Justus M.A. and Jaspers, Tim J.M. and Viviers, Christiaan G.A. and van der Putten, Joost A. and Kusters, Carolus H.J. and Jong, Martijn R. and van Eijck van Heslinga, Rixta A.H. and Slooter, Floor and de Groof, Albert J. and Bergman, Jacques J. and De With, Peter H.N. and van der Sommen, Fons},
+  booktitle = {SPIE Medical Imaging},
+  year      = {2026}
+}
 ```
-
-This command will start the project in the development environment, providing you with the necessary tools for testing and debugging.
-
-### Running Tests in Docker
-For testing purposes, use the following command to run the projects tests:
-
-```bash
-docker python manage.py docker test
-```
-
-This command will start the project services and evaluate all available tests.
-
-
-## Running tests locally
-Ensure all test dependencies are installed by running
-```bash
-python manage.py install testing
-```
-
-To run tests suite, use the following command:
-```bash
-python manage.py test [type]
-```
-where `type` is the type of tests to run. If not specified, only unit tests are run.
-Available types are:
-- `unit` - unit tests
-- `integration` - integration tests
-- `functional` - functional tests
-- `all` - all tests
-
-## Generating Sphinx documentation
-To generate documentation, run
-```bash
-python manage.py docs
-```
-This will generate documentation in `docs/_build/html` directory.
-
-### Viewing documentation
-To view documentation, open `docs/_build/html/index.html` in your browser. A documentation template is provided that is ready to be filled in, the arc42 template is used for the software architecture section. 
-
-## Check code style and type checking
-To check code style and type checking, run
-```bash
-python manage.py check
-```
-This will run `ruff` and `mypy` on the project with the configurations found in `pyproject.toml`.
-
-These checks are also run automatically in CI/CD on every push/pull request to main. Ensure all checks pass before pushing your code. Consider using a pre-commit hook to run these checks automatically before every commit (not part of the template).
-
-## Running the project locally
-Ensure all dependencies are installed by running
-```bash
-python manage.py install
-```
-
-To run the project, use the following command:
-```bash
-python manage.py run
-```
-This will run the script in `src/main.py`, which should be the main entrypoint to the application.
-
-
-
 
 
 
